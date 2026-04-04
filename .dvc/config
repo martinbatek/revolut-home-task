@@ -1,4 +1,4 @@
 [core]
     remote = revolut-dvc
 ['remote "revolut-dvc"']
-    url = https://revolut-case-study-bucket.s3.eu-west-2.amazonaws.com/dvc/
+    url = s3://revolut-case-study-bucket/dvc/
