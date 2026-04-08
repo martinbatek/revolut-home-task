@@ -1,4 +1,5 @@
 [core]
     remote = revolut-dvc
+    autostage = true
 ['remote "revolut-dvc"']
     url = s3://revolut-case-study-bucket/dvc/
