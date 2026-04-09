@@ -1,40 +1,56 @@
 CREATE TABLE gp_per_user AS
 WITH step1 AS
 (
+    WITH user_details AS
+    (
+        SELECT
+            user_country,
+            user_type,
+            user_plan,
+            user_state,
+            age_group,
+            strftime('%Y-%m-01',onboarded_date) AS onboarded_month,
+            is_nap,
+            user_id,
+            row_number() over(partition by user_id order by pnl_date DESC) as rn
+        FROM user_monthly_gp
+    )
     SELECT
         user_country,
         user_type,
         user_plan,
         user_state,
         age_group,
-        strftime('%Y-%m-01',onboarded_date) AS onboarded_month,
+        onboarded_month,
         is_nap,
-        amount_gbp*1000 as amount_gbp,
         user_id
-    FROM user_monthly_gp
+    FROM user_details
+    WHERE rn=1
 ),
 step2 AS
 (
     SELECT
-        user_id,
-        user_country,
-        user_type,
-        user_plan,
-        user_state,
-        age_group,
-        onboarded_month,
-        is_nap,
-        SUM(amount_gbp) AS gross_profit
-    FROM step1
+        a.user_id,
+        a.user_country,
+        a.user_type,
+        a.user_plan,
+        a.user_state,
+        a.age_group,
+        a.onboarded_month,
+        a.is_nap,
+        SUM(b.amount_gbp) AS gross_profit
+    FROM step1 AS a
+    LEFT JOIN user_monthly_gp AS b
+        on a.user_id=b.user_id
     GROUP BY
-        user_id,
-        user_country,
-        user_type,
-        user_plan,
-        user_state,
-        age_group,
-        onboarded_month,
-        is_nap
+        a.user_id,
+        a.user_country,
+        a.user_type,
+        a.user_plan,
+        a.user_state,
+        a.age_group,
+        a.onboarded_month,
+        a.is_nap
     ORDER BY gross_profit DESC
 ),
 vending_machine_campaign AS

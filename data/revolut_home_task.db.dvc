@@ -1,5 +1,5 @@
 outs:
-- md5: 748446ba07265368bdf435fa099f2ee3
-  size: 52482048
+- md5: 8770977145dc709da40048ee16f20678
+  size: 69881856
   hash: md5
   path: revolut_home_task.db
