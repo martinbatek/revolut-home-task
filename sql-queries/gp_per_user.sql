@@ -38,7 +38,7 @@ step2 AS
         a.age_group,
         a.onboarded_month,
         a.is_nap,
-        SUM(b.amount_gbp) AS gross_profit
+        SUM(b.amount_gbp)*1000 AS gross_profit
     FROM step1 AS a
     LEFT JOIN user_monthly_gp AS b
         on a.user_id=b.user_id

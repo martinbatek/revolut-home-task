@@ -6,7 +6,8 @@ SELECT
     user_country,
     user_type,
     user_plan,
-    SUM(amount_gbp) AS gross_profit
+    SUM(amount_gbp) AS gross_profit,
+    COUNT(*) AS entries
 FROM user_monthly_gp
 GROUP BY account_level_1,
     account_level_2,
