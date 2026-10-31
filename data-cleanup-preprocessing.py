@@ -67,7 +67,7 @@ def main() -> None:
         data.loc[
             (data.user_type == "BUSINESS") & (data.user_plan == "STANDARD"),
             ["user_plan"],
-        ] = "COMPANY_SCALE"
+        ] = "COMPANY_BASIC"
 
         data.loc[
             (data.user_type.isin(["BUSINESS_EMPLOYEE", "BUSINESS_USER"]))
