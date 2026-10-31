@@ -220,3 +220,6 @@ __marimo__/
 
 # Input Data
 data/
+
+# Output data
+outputs/
