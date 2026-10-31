@@ -80,6 +80,22 @@ def main() -> None:
             ["user_plan"],
         ] = "STANDARD"
 
+        account_levels = [f"account_level_{level}" for level in range(1, 5)]
+        account_text = data[account_levels].fillna("").agg(" ".join, axis=1)
+        has_charges = account_text.str.contains(r"\bcharges?\b", case=False, regex=True)
+        has_fees = account_text.str.contains(r"\bfees?\b", case=False, regex=True)
+
+        group_min_amount = data.groupby(account_levels, dropna=False)["amount_gbp"].transform("min")
+        group_max_amount = data.groupby(account_levels, dropna=False)["amount_gbp"].transform("max")
+
+        data["revenue_expense"] = pd.Series(pd.NA, index=data.index, dtype="string")
+        data.loc[has_charges, "revenue_expense"] = "expense"
+        data.loc[has_fees & ~has_charges, "revenue_expense"] = "revenue"
+
+        no_keyword = ~has_charges & ~has_fees
+        data.loc[no_keyword & (group_min_amount >= 0), "revenue_expense"] = "revenue"
+        data.loc[no_keyword & (group_max_amount < 0), "revenue_expense"] = "expense"
+
         # Infer distinct user IDs for lines where user_id = '0'
         data.loc[(data.user_id == "0"), ["user_id"]] = "inf-" + data.loc[(data.user_id == "0")].row_id.astype(str)
 
