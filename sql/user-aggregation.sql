@@ -5,19 +5,14 @@ WITH user_nap AS (
         SELECT
             user_id,
             is_nap,
-            pnl_date,
-            ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY pnl_date DESC) AS rn_total_desc,
-            ROW_NUMBER() OVER (PARTITION BY user_id, is_nap ORDER BY pnl_date) AS rn_by_nap
+            ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY pnl_date DESC) AS rn
         FROM case_study_data
     )
-    
     SELECT
         user_id,
-        is_nap AS is_nap_latest, -- latest is_nap status
-        DATE(pnl_date) AS as_of_date -- earliest pnl_date when the current is_nap status was recorded
+        is_nap -- latest is_nap status
     FROM step1
-    WHERE rn_total_desc = 1
-    AND rn_by_nap = 1
+    WHERE rn=1
 ),
 onboarded_dates AS (
     WITH step1 AS (
@@ -176,8 +171,7 @@ profitability AS (
 )
 SELECT
     u.user_id,
-    u.is_nap_latest,
-    u.as_of_date AS is_nap_date,
+    u.is_nap,
     o.onboarded_date,
     o.user_state,
     p.user_type,
@@ -206,3 +200,4 @@ LEFT JOIN geography AS g
     ON u.user_id = g.user_id
 LEFT JOIN profitability AS pr
     ON u.user_id = pr.user_id
+;
