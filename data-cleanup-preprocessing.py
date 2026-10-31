@@ -92,6 +92,9 @@ def main() -> None:
     finally:
         conn.close()
 
+        # Write data to csv
+        data.to_csv('data/processed_case_study_data.csv',index=False)
+
 
 if __name__ == "__main__":
     main()
