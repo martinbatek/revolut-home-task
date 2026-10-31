@@ -80,11 +80,19 @@ def main() -> None:
             ["user_plan"],
         ] = "STANDARD"
 
+        # Label revenue or expense at an account level
+
+        ## If Account level contains fee(s)-"revenue"
+        ## If Account level contains charge(s)-"expense"
         account_levels = [f"account_level_{level}" for level in range(1, 5)]
         account_text = data[account_levels].fillna("").agg(" ".join, axis=1)
         has_charges = account_text.str.contains(r"\bcharges?\b", case=False, regex=True)
         has_fees = account_text.str.contains(r"\bfees?\b", case=False, regex=True)
 
+        ## Otherwise:
+        ## If consistantly positive GP - "revenue"
+        ## If consistantly negative GP - "Expense"
+        ## Otherwise, leave as null
         group_min_amount = data.groupby(account_levels, dropna=False)["amount_gbp"].transform("min")
         group_max_amount = data.groupby(account_levels, dropna=False)["amount_gbp"].transform("max")
 
