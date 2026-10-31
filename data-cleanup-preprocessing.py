@@ -83,6 +83,9 @@ def main() -> None:
         # Infer distinct user IDs for lines where user_id = '0'
         data.loc[(data.user_id == "0"), ["user_id"]] = "inf-" + data.loc[(data.user_id == "0")].row_id.astype(str)
 
+        # Write data to csv
+        data.to_csv('data/processed_case_study_data.csv',index=False)
+
         rows_overwritten = data.to_sql(
             "case_study_data",
             conn,
@@ -91,9 +94,6 @@ def main() -> None:
         print(f"Table case_study_data successfully overwritten with {rows_overwritten} rows.")
     finally:
         conn.close()
-
-        # Write data to csv
-        data.to_csv('data/processed_case_study_data.csv',index=False)
 
 
 if __name__ == "__main__":
