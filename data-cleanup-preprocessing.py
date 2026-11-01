@@ -5,12 +5,13 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-
+from pandasql import sqldf
 
 BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR / "data"
 EXCEL_PATH = DATA_DIR / "Data Set - Home Task.xlsx"
 DB_PATH = DATA_DIR / "revolut_home_task.db"
+PP_SQL_DIR = BASE_DIR/"sql"/"preprocessing"
 
 
 def main() -> None:
@@ -80,33 +81,22 @@ def main() -> None:
             ["user_plan"],
         ] = "STANDARD"
 
-        # Label revenue or expense at an account level
-
-        ## If Account level contains fee(s)-"revenue"
-        ## If Account level contains charge(s)-"expense"
-        account_levels = [f"account_level_{level}" for level in range(1, 5)]
-        account_text = data[account_levels].fillna("").agg(" ".join, axis=1)
-        has_charges = account_text.str.contains(r"\bcharges?\b", case=False, regex=True)
-        has_fees = account_text.str.contains(r"\bfees?\b", case=False, regex=True)
-
-        ## Otherwise:
-        ## If consistantly positive GP - "revenue"
-        ## If consistantly negative GP - "Expense"
-        ## Otherwise, leave as null
-        group_min_amount = data.groupby(account_levels, dropna=False)["amount_gbp"].transform("min")
-        group_max_amount = data.groupby(account_levels, dropna=False)["amount_gbp"].transform("max")
-
-        data["revenue_expense"] = pd.Series(pd.NA, index=data.index, dtype="string")
-        data.loc[has_charges, "revenue_expense"] = "expense"
-        data.loc[has_fees & ~has_charges, "revenue_expense"] = "revenue"
-
-        no_keyword = ~has_charges & ~has_fees
-        data.loc[no_keyword & (group_min_amount >= 0), "revenue_expense"] = "revenue"
-        data.loc[no_keyword & (group_max_amount < 0), "revenue_expense"] = "expense"
-
         # Infer distinct user IDs for lines where user_id = '0'
         data.loc[(data.user_id == "0"), ["user_id"]] = "inf-" + data.loc[(data.user_id == "0")].row_id.astype(str)
 
+        # Infer revenue or expense tagging per account lines
+        rev_exp_sql_path = PP_SQL_DIR / "rev-expense-classification.sql"
+        with open(rev_exp_sql_path, "r") as f:
+            rev_exp_sql = f.read()
+            f.close()
+        rev_expense_classification = sqldf(rev_exp_sql, locals())
+        data = pd.merge(
+            data,
+            rev_expense_classification,
+            how="left",
+            on=["account_level_1", "account_level_2", "account_level_3", "account_level_4"]
+        )
+        
         # Write data to csv
         data.to_csv('data/processed_case_study_data.csv',index=False)
 

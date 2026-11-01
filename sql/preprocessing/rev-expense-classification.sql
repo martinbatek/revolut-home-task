@@ -28,9 +28,11 @@ SELECT
     account_level_2,
     account_level_3,
     account_level_4,
-    count_of_revenues,
-    count_of_costs,
     CASE
+    /* 
+    First, defer to the guidence provided in the Home task description:
+    "If the account name contains the word “fee” or “charge”, then it is a revenue or expense respectively."
+    */
         WHEN
             UPPER(COALESCE(account_level_1,'')) LIKE '%FEE%'
             OR UPPER(COALESCE(account_level_2,'')) LIKE '%FEE%'
@@ -44,6 +46,9 @@ SELECT
             OR UPPER(COALESCE(account_level_4,'')) LIKE '%CHARGE%'
         THEN 'expense'
         ELSE
+        /*
+        For unresolved cases, classify based on the count of revenues vs. costs.
+        */
             CASE
                 WHEN count_of_revenues > count_of_costs THEN 'revenue'
                 WHEN count_of_revenues < count_of_costs THEN 'expense'
