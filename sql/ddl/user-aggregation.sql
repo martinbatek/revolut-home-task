@@ -126,6 +126,33 @@ profitability AS (
         ) AS top_ups,
         SUM(
             CASE
+                WHEN 
+                account_level_3 = 'Top-ups'
+                AND account_level_4 = 'Partner: Fire'
+                    THEN amount_gbp
+                    ELSE 0.0
+            END
+        ) AS top_ups_fire,
+        SUM(
+            CASE
+                WHEN 
+                account_level_3 = 'Top-ups'
+                AND account_level_4 = 'Partner: Ice'
+                    THEN amount_gbp
+                    ELSE 0.0
+            END
+        ) AS top_ups_ice,
+        SUM(
+            CASE
+                WHEN 
+                account_level_3 = 'Top-ups'
+                AND account_level_4 = 'Partner: Rock'
+                    THEN amount_gbp
+                    ELSE 0.0
+            END
+        ) AS top_ups_rock,
+        SUM(
+            CASE
                 WHEN account_level_2 = 'Subscriptions'
                     THEN amount_gbp
                     ELSE 0.0
@@ -161,11 +188,36 @@ profitability AS (
         ) AS interchange_fees,
         SUM(
             CASE
-                WHEN account_level_3 = 'atm'
+                WHEN account_level_3 = 'ATM'
+                AND revenue_expense = 'revenue'
                     THEN amount_gbp
                     ELSE 0.0
             END
-        ) AS atm
+        ) AS atm_revenue,
+        SUM(
+            CASE
+                WHEN account_level_3 = 'ATM'
+                AND revenue_expense = 'expense'
+                    THEN amount_gbp
+                    ELSE 0.0
+            END
+        ) AS atm_expense,
+        SUM(
+            CASE
+                WHEN account_level_2 = 'Bank Payments'
+                AND revenue_expense = 'revenue'
+                    THEN amount_gbp
+                    ELSE 0.0
+            END
+        ) AS bp_revenue,
+        SUM(
+            CASE
+                WHEN account_level_2 = 'Bank Payments'
+                AND revenue_expense = 'expense'
+                    THEN amount_gbp
+                    ELSE 0.0
+            END
+        ) AS bp_expense
     FROM case_study_data
     GROUP BY user_id
 )
@@ -185,12 +237,18 @@ SELECT
     pr.expense,
     pr.vending_machine_rewards,
     pr.top_ups,
+    pr.top_ups_fire,
+    pr.top_ups_ice,
+    pr.top_ups_rock,
     pr.subscriptions,
     pr.lifestyle,
     pr.fx,
     pr.interest_income,
     pr.interchange_fees,
-    pr.atm
+    pr.atm_revenue,
+    pr.atm_expense,
+    pr.bp_revenue,
+    pr.bp_expense
 FROM user_nap AS u
 LEFT JOIN onboarded_dates AS o
     ON u.user_id = o.user_id
