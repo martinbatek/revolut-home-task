@@ -16,9 +16,11 @@ def main() -> None:
 
     with sqlite3.connect(DB_PATH) as connection:
         for sql_path in sorted(DDL_DIR.glob("*.sql")):
+            print(f"Executing DDL: {sql_path}", flush=True)
             connection.executescript(sql_path.read_text(encoding="utf-8"))
 
         for sql_path in sorted(QUERIES_DIR.glob("*.sql")):
+            print(f"Executing query: {sql_path}", flush=True)
             cursor = connection.execute(sql_path.read_text(encoding="utf-8"))
             output_path = OUTPUTS_DIR / f"{sql_path.stem}.csv"
 
