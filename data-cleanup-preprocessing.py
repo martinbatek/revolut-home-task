@@ -5,12 +5,13 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-
+from pandasql import sqldf
 
 BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR / "data"
 EXCEL_PATH = DATA_DIR / "Data Set - Home Task.xlsx"
 DB_PATH = DATA_DIR / "revolut_home_task.db"
+PP_SQL_DIR = BASE_DIR/"sql"/"preprocessing"
 
 
 def main() -> None:
@@ -83,6 +84,19 @@ def main() -> None:
         # Infer distinct user IDs for lines where user_id = '0'
         data.loc[(data.user_id == "0"), ["user_id"]] = "inf-" + data.loc[(data.user_id == "0")].row_id.astype(str)
 
+        # Infer revenue or expense tagging per account lines
+        rev_exp_sql_path = PP_SQL_DIR / "rev-expense-classification.sql"
+        with open(rev_exp_sql_path, "r") as f:
+            rev_exp_sql = f.read()
+            f.close()
+        rev_expense_classification = sqldf(rev_exp_sql, locals())
+        data = pd.merge(
+            data,
+            rev_expense_classification,
+            how="left",
+            on=["account_level_1", "account_level_2", "account_level_3", "account_level_4"]
+        )
+        
         # Write data to csv
         data.to_csv('data/processed_case_study_data.csv',index=False)
 
